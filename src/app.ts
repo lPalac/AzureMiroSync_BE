@@ -81,14 +81,14 @@ router.post("/", async (req: any, res: any) => {
         "content-type": "application/json",
         authorization: `Bearer ${process.env.MIRO_ACCESS_TOKEN}`,
       },
+      style: {
+        cardTheme: getStatusColor(status),
+        fillBackground: true,
+      },
       data: {
         data: {
           title,
           fields: [...(currentAppCardData?.data?.fields || [])],
-          style: {
-            cardTheme: getStatusColor(status),
-            fillBackground: true,
-          },
         },
       },
     };
@@ -96,7 +96,7 @@ router.post("/", async (req: any, res: any) => {
       value: status,
       iconShape: "square",
       fillColor: getStatusColor(status),
-      textColor: "#FFFFFF",
+      textColor: "#000000",
       iconUrl: "https://cdn-icons-png.flaticon.com/512/3867/3867669.png",
     }),
       axios

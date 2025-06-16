@@ -106,6 +106,10 @@ router.post("/", async (req, res) => {
                 "content-type": "application/json",
                 authorization: `Bearer ${process.env.MIRO_ACCESS_TOKEN}`,
             },
+            style: {
+                cardTheme: (0, getColors_1.getStatusColor)(status),
+                fillBackground: true,
+            },
             data: {
                 data: {
                     title,
@@ -117,9 +121,8 @@ router.post("/", async (req, res) => {
             value: status,
             iconShape: "square",
             fillColor: (0, getColors_1.getStatusColor)(status),
-            textColor: "#ffffff",
+            textColor: "#FFFFFF",
             iconUrl: "https://cdn-icons-png.flaticon.com/512/3867/3867669.png",
-            cardTheme: (0, getColors_1.getStatusColor)(status),
         }),
             axios_1.default
                 .request(options)
