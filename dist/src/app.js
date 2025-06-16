@@ -40,6 +40,7 @@ exports.router = exports.app = void 0;
 const express_1 = __importStar(require("express"));
 const axios_1 = __importDefault(require("axios"));
 const supabase_js_1 = require("@supabase/supabase-js");
+const getColors_1 = require("./getColors");
 const app = (0, express_1.default)();
 exports.app = app;
 const router = (0, express_1.Router)();
@@ -115,9 +116,10 @@ router.post("/", async (req, res) => {
         (options.data.data.fields[0] = {
             value: status,
             iconShape: "square",
-            fillColor: "#DADADA",
+            fillColor: (0, getColors_1.getStatusColor)(status),
             textColor: "#ffffff",
             iconUrl: "https://cdn-icons-png.flaticon.com/512/3867/3867669.png",
+            cardTheme: (0, getColors_1.getStatusColor)(status),
         }),
             axios_1.default
                 .request(options)
