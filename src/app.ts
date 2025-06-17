@@ -1,12 +1,14 @@
 import express, { Router } from "express";
 import axios from "axios";
+import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
+import { parseReq } from "./utils";
 import { getStatusColor } from "./getColors";
 
 const app = express();
 const router = Router();
 
-app.use(express.json());
+app.use(cors());
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "",
@@ -17,24 +19,73 @@ router.get("/", (_req, res) => {
   res.status(200).set("Content-Type", "text/plain").send("Hello, World!");
 });
 
-router.post("/", async (req: any, res: any) => {
-  let body;
+router.post("/auth", async (req, res) => {
+  const body = parseReq(req);
+  const client_id = body.client_id;
+  const code = body.code;
+  console.log({ code, client_id });
+  const options = {
+    method: "POST",
+    url: "https://api.miro.com/v1/oauth/token",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    data: {
+      grant_type: "authorization_code",
+      client_id: client_id,
+      client_secret: process.env.MIRO_CLIENT_SECRET,
+      code: code,
+      redirect_uri: process.env.MIRO_REDIRECT_URI,
+    },
+  };
+  axios
+    .request(options)
+    .then(async (r: any) => {
+      const { error } = await supabase.from("auth").upsert(
+        {
+          userId: r.data.user_id,
+          accessToken: r.data.access_token,
+        },
+        { onConflict: "userId" }
+      );
+      console.log(error);
+      if (error) {
+        res.status(500).end();
+        return;
+      } else {
+        console.log(r.data);
+        return res
+          .status(200)
+          .set("Content-Type", "application/json")
+          .send({ user_id: r.data.user_id, team_id: r.data.team_id });
+      }
+    })
+    .catch(console.log);
+});
 
-  // If body is a Buffer
-  if (Buffer.isBuffer(req.body)) {
-    const text = req.body.toString("utf-8");
-    body = JSON.parse(text);
-  } else if (typeof req.body === "string") {
-    body = JSON.parse(req.body);
-  } else {
-    body = req.body;
-  }
+router.post("/", async (req: any, res: any) => {
+  const body = parseReq(req);
   const PBIId = body.resource?.workItemId;
   const title = body.resource?.revision?.fields?.["System.Title"];
   const status = body.resource?.revision?.fields?.["System.State"];
+  const userId = req.query.userId;
+  const boardId = req.query.boardId;
   console.log({ PBIId, title, status });
 
   // Get MIROID from supabase
+  const { data: dataAuth, error: errorAuth } = await supabase
+    .from("auth")
+    .select("userId, accessToken")
+    .eq("userId", userId);
+  const accessToken = dataAuth?.[0]?.accessToken;
+
+  if (!accessToken || errorAuth) {
+    console.log(errorAuth || "User not found!");
+    res.status(200).send("Not Found").end();
+    return;
+  }
+
   const { data, error } = await supabase
     .from("PBI-mapping")
     .select("miroCardId, created_at, azurePBIId")
@@ -51,14 +102,13 @@ router.post("/", async (req: any, res: any) => {
     const options = {
       method: "GET",
       url: `https://api.miro.com/v2/boards/${encodeURI(
-        process.env.MIRO_BOARD_ID || ""
+        boardId || ""
       )}/app_cards/${appCardId}`,
       headers: {
         accept: "application/json",
-        authorization: `Bearer ${process.env.MIRO_ACCESS_TOKEN}`,
+        authorization: `Bearer ${accessToken}`,
       },
     };
-
     return await axios
       .request(options)
       .then((res) => res.data)
@@ -74,12 +124,12 @@ router.post("/", async (req: any, res: any) => {
     const options = {
       method: "PATCH",
       url: `https://api.miro.com/v2/boards/${encodeURI(
-        process.env.MIRO_BOARD_ID || ""
+        boardId || ""
       )}/app_cards/${appCardId}`,
       headers: {
         accept: "application/json",
         "content-type": "application/json",
-        authorization: `Bearer ${process.env.MIRO_ACCESS_TOKEN}`,
+        authorization: `Bearer ${accessToken}`,
       },
       style: {
         cardTheme: getStatusColor(status),
