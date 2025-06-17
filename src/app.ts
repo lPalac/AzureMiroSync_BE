@@ -2,8 +2,7 @@ import express, { Router } from "express";
 import axios from "axios";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
-import { parseReq } from "./utils";
-import { getStatusColor } from "./getColors";
+import { parseReq, getStatusColor } from "./utils";
 
 const app = express();
 const router = Router();
@@ -156,7 +155,6 @@ router.post("/", async (req: any, res: any) => {
         })
         .catch(console.log);
   };
-
   updateAppCard();
 });
 
