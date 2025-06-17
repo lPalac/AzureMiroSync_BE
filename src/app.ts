@@ -7,7 +7,16 @@ import { parseReq, getStatusColor } from "./utils";
 const app = express();
 const router = Router();
 
-app.use(cors());
+app.use(
+  cors({
+    // // TODO  import env
+    // origin: pro,
+    // methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    // preflightContinue: false,
+    // optionsSuccessStatus: 204,
+    // credentials: true,
+  })
+);
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "",
@@ -130,11 +139,10 @@ router.post("/", async (req: any, res: any) => {
         "content-type": "application/json",
         authorization: `Bearer ${accessToken}`,
       },
-      style: {
-        cardTheme: getStatusColor(status),
-        fillBackground: true,
-      },
       data: {
+        style: {
+          fillColor: getStatusColor(status),
+        },
         data: {
           title,
           fields: [...(currentAppCardData?.data?.fields || [])],
@@ -142,11 +150,10 @@ router.post("/", async (req: any, res: any) => {
       },
     };
     (options.data.data.fields[0] = {
+      ...options.data.data.fields[0],
       value: status,
-      iconShape: "square",
-      fillColor: getStatusColor(status),
       textColor: "#000000",
-      iconUrl: "https://cdn-icons-png.flaticon.com/512/3867/3867669.png",
+      fillColor: getStatusColor(status),
     }),
       axios
         .request(options)

@@ -5,7 +5,7 @@
     "build": "npx tsc",
     "dev": "netlify dev",
     "deploy": "netlify build && netlify deploy",
-    "deploy-prod": "netlify deploy --prod"
+    "deploy-prod": "netlify build && netlify deploy --prod"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",

@@ -46,7 +46,14 @@ const app = (0, express_1.default)();
 exports.app = app;
 const router = (0, express_1.Router)();
 exports.router = router;
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+// // TODO  import env
+// origin: pro,
+// methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+// preflightContinue: false,
+// optionsSuccessStatus: 204,
+// credentials: true,
+}));
 const supabase = (0, supabase_js_1.createClient)(process.env.SUPABASE_URL || "", process.env.SUPABASE_KEY || "");
 router.get("/", (_req, res) => {
     res.status(200).set("Content-Type", "text/plain").send("Hello, World!");
@@ -150,11 +157,10 @@ router.post("/", async (req, res) => {
                 "content-type": "application/json",
                 authorization: `Bearer ${accessToken}`,
             },
-            style: {
-                cardTheme: (0, utils_1.getStatusColor)(status),
-                fillBackground: true,
-            },
             data: {
+                style: {
+                    fillColor: (0, utils_1.getStatusColor)(status),
+                },
                 data: {
                     title,
                     fields: [...(currentAppCardData?.data?.fields || [])],
