@@ -7,24 +7,14 @@ import { parseReq, getStatusColor } from "./utils";
 const app = express();
 const router = Router();
 
-app.use(
-  cors({
-    // // TODO  import env
-    // origin: pro,
-    // methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    // preflightContinue: false,
-    // optionsSuccessStatus: 204,
-    // credentials: true,
-  })
-);
+app.use(cors({}));
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "",
   process.env.SUPABASE_KEY || ""
 );
-
 router.get("/", (_req, res) => {
-  res.status(200).set("Content-Type", "text/plain").send("Hello, World!");
+  res.status(200).set("Content-Type", "text/plain").send("Hej dobio sam ");
 });
 
 router.post("/auth", async (req, res) => {
